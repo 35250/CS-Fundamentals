@@ -469,3 +469,29 @@ Primary Keys
 ↓
 
 Foreign Keys
+
+## Important definitions: 
+1) A file system stores and manages data as files and directories, while a DBMS provides a structured way to store, retrieve, update, and manage related data using concepts such as schemas, constraints, transactions, concurrency control, and querying.
+
+2) An ER model is a conceptual representation of a database that identifies entities, their attributes, the relationships between entities, and constraints such as cardinality and participation before the database is implemented.
+
+3) Cardinality specifies the number of instances of one entity that can be associated with instances of another entity through a relationship.
+4) A strong entity is an entity that has its own key attribute and can be uniquely identified independently of another entity.
+5) A weak entity is an entity that cannot be uniquely identified by its own attributes alone and depends on another entity, called the owner or strong entity, for its identification.
+6) A candidate key is a minimal set of attributes that uniquely identifies each row in a relation.
+7) A super key is any set of one or more attributes that uniquely identifies a row.
+8) A primary key is the candidate key selected by the database designer to uniquely identify rows in a table. It must be unique and cannot contain NULL values. The choice among candidate keys can depend on the application's requirements and design considerations.
+
+9) Normalization is the process of structuring a database to reduce unnecessary redundancy and prevent insertion, deletion, and update anomalies while maintaining data integrity.
+10) A relation is in 1NF if every attribute contains atomic values, meaning each cell contains a single indivisible value and there are no repeating groups or multi-valued attributes.
+11) A relation is in 2NF if it is already in 1NF and every non-prime attribute is fully functionally dependent on the whole candidate key, meaning there is no partial dependency on a proper subset of a composite candidate key.
+
+12) A relation is in 3NF if it is in 2NF and there is no transitive dependency of a non-prime attribute on a candidate key.
+13) For every non-trivial functional dependency X → Y, X must be a super key.
+14) A join combines rows from two or more tables based on a related condition, allowing us to retrieve data that is distributed across those tables.
+15) A transaction is a sequence of one or more database operations that together represent a single logical unit of work.
+16) ACID is a set of properties that ensures database transactions are processed reliably and maintain the correctness of data, especially in the presence of failures and concurrent transactions.
+17) Atomicity means a transaction is treated as an indivisible unit: either all of its operations are successfully completed, or none of its changes are applied.
+18) Consistency means that a transaction takes the database from one valid state to another valid state while preserving all defined data constraints and rules.
+19) Isolation means that concurrently executing transactions should not interfere with each other in a way that produces an incorrect result; their effect should be consistent with an appropriate serial execution.
+20) Durability means that once a transaction is successfully committed, its changes are permanently preserved and will not be lost even if a system failure occurs afterward.
