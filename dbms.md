@@ -495,3 +495,4 @@ Foreign Keys
 18) Consistency means that a transaction takes the database from one valid state to another valid state while preserving all defined data constraints and rules.
 19) Isolation means that concurrently executing transactions should not interfere with each other in a way that produces an incorrect result; their effect should be consistent with an appropriate serial execution.
 20) Durability means that once a transaction is successfully committed, its changes are permanently preserved and will not be lost even if a system failure occurs afterward.
+21) An index is a data structure built on one or more columns that provides an efficient way for the database to locate rows matching a query, avoiding a full table scan when the index is useful.
