@@ -496,3 +496,180 @@ Foreign Keys
 19) Isolation means that concurrently executing transactions should not interfere with each other in a way that produces an incorrect result; their effect should be consistent with an appropriate serial execution.
 20) Durability means that once a transaction is successfully committed, its changes are permanently preserved and will not be lost even if a system failure occurs afterward.
 21) An index is a data structure built on one or more columns that provides an efficient way for the database to locate rows matching a query, avoiding a full table scan when the index is useful.
+
+## Database Indexes — 
+1. What is an Index?
+An index is an additional data structure created on one or more columns (or expressions).
+Its purpose is to help the database locate required rows efficiently instead of scanning the entire table.
+The table stores the actual data; the index provides an efficient access path to that data.
+An index is not part of the row itself and is separate from the table's actual data storage.
+Interview definition
+
+An index is a data structure built on one or more columns that allows the database to locate matching rows efficiently, reducing the need for a full table scan.
+
+2. Why are Indexes Needed?
+
+Without an index:
+
+Query → scan table → examine rows → find matching rows
+
+With a useful index:
+
+Query → search index → locate relevant rows → fetch rows
+
+Therefore, indexes are primarily used to:
+
+Speed up read/query operations
+Efficiently locate rows for frequently used search conditions
+Support efficient equality and range queries, depending on index type
+3. Advantages of Indexes
+✅ Faster reads
+
+Queries can avoid scanning the entire table.
+
+✅ Efficient searching
+
+Particularly useful for frequently queried columns.
+
+✅ Efficient sorting/range operations
+
+Certain index types, especially B-Trees, can efficiently support ordered and range-based queries.
+
+✅ Can improve query performance significantly
+
+Especially when the table is large and the query is selective.
+
+4. Disadvantages of Indexes
+❌ Extra storage
+
+Indexes require additional disk/storage space.
+
+❌ Slower writes
+
+INSERT, UPDATE, and DELETE may need to update the corresponding indexes.
+
+❌ Maintenance overhead
+
+The database must maintain indexes as table data changes.
+
+❌ Not every index is useful
+
+The database optimizer may decide that using an index is more expensive than scanning the table.
+
+Key trade-off
+
+Indexes improve read performance at the cost of additional storage and write/maintenance overhead.
+
+5. Important: Index ≠ B-Tree
+
+This distinction is very important.
+
+Index
+  │
+  ├── B-Tree
+  ├── Hash
+  └── Other index structures/types
+Index = the mechanism/access path used to efficiently locate data.
+B-Tree = one data structure commonly used to implement an index.
+Hash = another possible structure for certain types of lookups.
+
+So don't say:
+
+"An index is a B-Tree."
+
+Say:
+
+"A B-Tree is a common data structure used to implement an index."
+
+## B-Trees — 
+6. What is a B-Tree?
+
+A B-Tree is a balanced, multi-way search tree.
+
+Important properties:
+
+Keys are maintained in sorted order
+Each node can contain multiple keys
+Each node can have many children
+The tree remains balanced
+Therefore, it is wide and shallow
+7. Why B-Trees for Database Indexes?
+
+The biggest reason is storage/page access.
+
+Database data is managed in pages/blocks rather than treating storage like ordinary RAM.
+
+Storage access is much more expensive than operations performed in memory.
+
+Therefore:
+
+The database wants to minimize the number of pages it needs to access.
+
+B-Tree helps because:
+
+Many children per node
+        ↓
+High branching factor
+        ↓
+Fewer levels
+        ↓
+Shallow tree
+        ↓
+Fewer page accesses
+        ↓
+Faster search
+Core interview answer
+
+B-Trees are well suited for database indexes because they are balanced and have a high branching factor, making them shallow. This reduces the number of storage-page accesses required to locate data.
+
+8. Advantages of B-Trees
+✅ Balanced
+
+Search paths remain roughly similar in length.
+
+✅ High branching factor
+
+Nodes can contain many keys/children.
+
+✅ Shallow
+
+High branching factor means fewer levels.
+
+✅ Fewer page accesses
+
+This is the major database-specific advantage.
+
+✅ Keys are sorted
+
+Makes ordered searching possible.
+
+✅ Efficient equality searches
+
+Can efficiently find a specific key.
+
+✅ Efficient range queries
+
+Because keys are ordered, B-Trees are excellent for conditions such as:
+
+<, <=, =, >=, >
+BETWEEN
+✅ Ordered retrieval
+
+Can efficiently support queries that need data in key order.
+
+9. Disadvantages of B-Trees
+❌ Index consumes additional storage
+
+The B-Tree itself requires space.
+
+❌ Write overhead
+
+Insertions, deletions, and updates may require modifying/rebalancing the tree.
+
+❌ More complex than simpler structures
+
+Maintaining balance and structure adds implementation complexity.
+
+❌ Not always the best index type
+
+Different workloads may benefit from different index structures.
