@@ -1,6 +1,6 @@
-## 🔥 Your Actual OS Syllabus
+# 🔥 Your Actual OS Syllabus
 
-# Tier 1 — MASTER
+## Tier 1 — MASTER
 
 Processes & Threads
 
@@ -57,7 +57,7 @@ Page fault
 FIFO/LRU/Optimal
 TLB
 
-# Tier 2 — UNDERSTAND
+## Tier 2 — UNDERSTAND
 fork/exec/wait/exit
 User vs kernel threads deeper details
 IPC
