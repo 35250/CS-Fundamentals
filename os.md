@@ -627,3 +627,47 @@ A process can have multiple threads. Threads in the same process generally share
 **User-level thread → managed by user-level library/runtime**
 **Kernel-level thread → managed by OS kernel**
 
+# CPU Scheduling Basics
+
+## 1. Concurrency vs Parallelism
+
+### Concurrency
+
+Multiple tasks make progress during the same period, but they do not necessarily execute at the exact same time.
+
+* Possible with a single CPU core.
+* The CPU switches between runnable tasks.
+
+### Parallelism
+
+Multiple tasks execute **simultaneously**, typically using multiple CPU cores.
+
+**In short:**
+
+* Concurrency → multiple tasks making progress
+* Parallelism → multiple tasks executing simultaneously
+
+---
+
+## 2. CPU Scheduling
+
+CPU scheduling is the mechanism by which the OS decides **which runnable process/thread gets the CPU next**.
+
+It is needed because multiple runnable processes/threads compete for limited CPU time.
+
+---
+
+## 3. Preemptive vs Non-Preemptive Scheduling
+
+### Preemptive Scheduling
+
+The OS can **forcibly take the CPU** from a running process/thread and assign it to another runnable one.
+
+### Non-Preemptive Scheduling
+
+The OS **does not forcibly take the CPU** from a running process/thread. It keeps the CPU until the process finishes or blocks.
+
+**Key difference:**
+
+* Preemptive → OS can interrupt a running process/thread.
+* Non-preemptive → running process/thread keeps the CPU until it finishes or blocks.
