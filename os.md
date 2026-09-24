@@ -582,3 +582,48 @@ Resources that may need to be cleaned up include:
 6. **Process Creation:** The process by which the OS establishes a new process and its execution environment.
 
 7. **Process Termination:** The process of ending a process and allowing the OS to clean up its associated resources.
+
+# Threads
+
+## 1. Thread
+
+A **thread** is an independent execution path within a process.
+
+A process can have multiple threads. Threads in the same process generally share the process's code, heap, global data, and resources, but each thread has its own **Program Counter, CPU registers, and stack**.
+
+---
+
+## 2. Process vs Thread
+
+| Process                                             | Thread                               |
+| --------------------------------------------------- | ------------------------------------ |
+| Independent execution environment managed by the OS | Execution path within a process      |
+| Has its own memory space and resources              | Shares many resources of its process |
+| More isolated from other processes                  | Less isolated from other threads     |
+| Contains one or more threads                        | Belongs to a process                 |
+
+**Simple idea:**
+**Process = environment/resources**
+**Thread = execution path**
+
+---
+
+## 3. User-Level Thread vs Kernel-Level Thread
+
+### User-Level Thread
+
+* Managed by a user-level thread library/runtime.
+* The OS does not directly manage each individual thread.
+* Thread creation and switching can be handled in user space.
+* Threads can still use the OS through system calls when they need OS services.
+
+### Kernel-Level Thread
+
+* Managed directly by the OS kernel.
+* The kernel knows and manages individual threads.
+* The kernel can schedule threads independently.
+
+**Key difference:**
+**User-level thread → managed by user-level library/runtime**
+**Kernel-level thread → managed by OS kernel**
+
