@@ -671,3 +671,606 @@ The OS **does not forcibly take the CPU** from a running process/thread. It keep
 
 * Preemptive → OS can interrupt a running process/thread.
 * Non-preemptive → running process/thread keeps the CPU until it finishes or blocks.
+
+# CPU Scheduling Algorithms
+
+CPU scheduling algorithms determine **which Ready process/thread gets the CPU next**.
+
+Before applying an algorithm, remember:
+
+* **Arrival Time (AT)** → When a process becomes Ready.
+* **Burst Time (BT)** → Total CPU time required by the process.
+* **Completion Time (CT)** → Time when the process finishes.
+* **Turnaround Time (TAT)** → Total time from arrival to completion.
+
+  * `TAT = CT - AT`
+* **Waiting Time (WT)** → Total time spent waiting for CPU.
+
+  * `WT = TAT - BT`
+* **Response Time (RT)** → Time from arrival until the process gets CPU for the first time.
+
+  * `RT = First CPU Start Time - AT`
+
+---
+
+# 1. FCFS — First Come, First Served
+
+## Core Idea
+
+The process that **arrives first** gets the CPU first.
+
+It works like a normal queue:
+
+```text
+P1 → P2 → P3
+```
+
+If P1 arrives first, P1 gets the CPU before P2 and P3.
+
+## How It Works
+
+* Processes enter the Ready Queue according to arrival order.
+* The process at the front gets the CPU.
+* Basic FCFS is **non-preemptive**.
+* Once a process gets the CPU, it keeps it until:
+
+  * it finishes, or
+  * it blocks/waits for something such as I/O.
+
+A blocked process is no longer using the CPU, so another Ready process can run.
+
+## Example
+
+```text
+P1: AT = 0, BT = 5
+P2: AT = 1, BT = 3
+P3: AT = 2, BT = 2
+```
+
+Execution:
+
+```text
+0        5        8       10
+|--- P1 ---|-- P2 --|--P3--|
+```
+
+## Advantages
+
+* Very simple.
+* Easy to implement.
+* Fair in terms of arrival order.
+
+## Disadvantage — Convoy Effect
+
+A long process can make many short processes wait behind it.
+
+```text
+P1 = 20
+P2 = 2
+P3 = 2
+
+0                    20   22   24
+|------ P1 -----------| P2 | P3 |
+```
+
+P2 and P3 are short but must wait for P1.
+
+This is called the **Convoy Effect**.
+
+## Key Point
+
+> **FCFS → earliest arriving Ready process gets the CPU.**
+
+---
+
+# 2. SJF — Shortest Job First
+
+## Core Idea
+
+Among the processes that are **currently Ready**, choose the process with the **smallest Burst Time**.
+
+```text
+P1 → BT = 8
+P2 → BT = 3
+P3 → BT = 5
+
+Order: P2 → P3 → P1
+```
+
+## Important: Only Ready Processes Matter
+
+SJF cannot choose a process that has not arrived yet.
+
+Example:
+
+```text
+P1: AT = 0, BT = 8
+P2: AT = 3, BT = 2
+```
+
+At time `0`, only P1 is Ready.
+
+Therefore:
+
+```text
+0 ───────── 8
+    P1
+```
+
+P2 cannot be selected at time `0` because it has not arrived.
+
+## Basic SJF Behavior
+
+* Choose the Ready process with the smallest BT.
+* Basic SJF is **non-preemptive**.
+* Once a process starts running, it is not forcibly interrupted.
+* A newly arrived process with a shorter BT must wait until the current process finishes or blocks.
+
+## Example
+
+```text
+P1: AT = 0, BT = 7
+P2: AT = 2, BT = 4
+P3: AT = 3, BT = 2
+```
+
+At time `0`:
+
+```text
+Only P1 is Ready → P1 runs
+```
+
+At time `7`:
+
+```text
+P2: BT = 4
+P3: BT = 2
+
+Choose P3
+```
+
+Execution:
+
+```text
+0          7     9          13
+|---- P1 ----| P3 |---- P2 ----|
+```
+
+## Key Point
+
+> **SJF → among currently Ready processes, choose the one with the smallest total Burst Time.**
+
+---
+
+# 3. SRTF — Shortest Remaining Time First
+
+SRTF is the **preemptive version of SJF**.
+
+## Core Idea
+
+Choose the Ready process with the **smallest remaining CPU time**.
+
+The important difference is:
+
+```text
+SJF  → smallest Burst Time
+SRTF → smallest Remaining Time
+```
+
+## Why "Remaining"?
+
+A process may have already executed part of its Burst Time.
+
+Example:
+
+```text
+P1: BT = 8
+```
+
+If P1 has already executed for 3 units:
+
+```text
+Remaining Time = 8 - 3 = 5
+```
+
+## Preemption
+
+SRTF is **preemptive**.
+
+If a new process arrives with a smaller remaining time than the currently running process, the current process can be interrupted.
+
+Example:
+
+```text
+P1: AT = 0, BT = 8
+P2: AT = 3, BT = 2
+```
+
+At time `3`:
+
+```text
+P1 has executed for 3 units.
+
+P1 remaining = 8 - 3 = 5
+P2 remaining = 2
+```
+
+Since:
+
+```text
+2 < 5
+```
+
+P1 is preempted.
+
+```text
+0    3    5        10
+| P1 | P2 |--- P1 ---|
+```
+
+After P2 finishes, P1 resumes.
+
+## Key Point
+
+> **SRTF → always prefer the Ready process with the smallest remaining CPU time.**
+
+---
+
+# 4. Priority Scheduling
+
+## Core Idea
+
+Among the Ready processes, the process with the **highest priority** gets the CPU.
+
+Example:
+
+```text
+P1 → Priority 3
+P2 → Priority 1
+P3 → Priority 2
+```
+
+If **smaller number means higher priority**:
+
+```text
+P2 → P3 → P1
+```
+
+## Priority Assignment
+
+There is **no single universal formula** for calculating priority.
+
+Priority can depend on:
+
+* Process type/importance.
+* Operating-system policy.
+* User/application settings.
+* Scheduling requirements.
+* Dynamic scheduling decisions.
+* How long a process has been waiting.
+
+Some systems use **dynamic priorities**, where priority can change over time.
+
+## Important
+
+Always check whether:
+
+```text
+Smaller number = higher priority
+```
+
+or:
+
+```text
+Larger number = higher priority
+```
+
+Both conventions can exist.
+
+## Types of Priority Scheduling
+
+Priority Scheduling can be:
+
+### Non-Preemptive Priority
+
+The highest-priority Ready process gets the CPU.
+
+Once it starts:
+
+* It keeps the CPU until it finishes or blocks.
+* A newly arriving higher-priority process must wait.
+
+```text
+P1 running
+   ↓
+P2 arrives with higher priority
+   ↓
+P1 continues
+   ↓
+P1 finishes
+   ↓
+P2 runs
+```
+
+### Preemptive Priority
+
+A newly arriving higher-priority process can interrupt the currently running process.
+
+```text
+P1 running
+   ↓
+P2 arrives with higher priority
+   ↓
+P1 is preempted
+   ↓
+P2 runs
+   ↓
+P2 finishes
+   ↓
+P1 resumes
+```
+
+## Key Point
+
+> **Priority Scheduling → highest-priority Ready process gets preference.**
+
+Priority Scheduling can be **preemptive or non-preemptive**.
+
+---
+
+# 5. Round Robin (RR)
+
+## Core Idea
+
+Round Robin gives each Ready process a fixed maximum amount of CPU time called the:
+
+**Time Quantum / Time Slice**
+
+Example:
+
+```text
+Time Quantum = 2
+
+P1 → P2 → P3
+
+CPU:
+P1 → 2 units
+P2 → 2 units
+P3 → 2 units
+P1 → 2 units
+...
+```
+
+Round Robin is **preemptive**.
+
+## How the Ready Queue Works
+
+Round Robin uses a **circular FIFO-style Ready Queue**.
+
+Example:
+
+```text
+P1 → P2 → P3
+```
+
+P1 gets one quantum.
+
+If P1 does not finish:
+
+```text
+P2 → P3 → P1
+```
+
+P2 gets its turn.
+
+Then:
+
+```text
+P3 → P1 → P2
+```
+
+And so on.
+
+## What Happens When Quantum Expires?
+
+If the process is still running when its quantum expires:
+
+1. OS preempts the process.
+2. Process is not finished.
+3. It is moved to the **back of the Ready Queue**.
+4. The next Ready process gets the CPU.
+
+Example:
+
+```text
+Time Quantum = 2
+
+P1 needs 5 units.
+
+P1:
+0 → 2
+```
+
+P1 has:
+
+```text
+5 - 2 = 3 units remaining
+```
+
+So:
+
+```text
+P2 → P3 → P1
+```
+
+P1 waits for its next turn.
+
+## What If the Process Finishes Before the Quantum?
+
+The Time Quantum is a **maximum**, not a guaranteed amount.
+
+Example:
+
+```text
+Time Quantum = 4
+P1 has only 2 units remaining
+```
+
+P1 runs for 2 units and finishes.
+
+The unused 2 units are **not transferred** to the next process.
+
+The next process gets its own fresh quantum:
+
+```text
+P1 → 2 units → finishes
+P2 → up to 4 units
+```
+
+There is no:
+
+```text
+P2 → 2 + 4 = 6 units
+```
+
+## What If New Processes Arrive During a Quantum?
+
+Suppose:
+
+```text
+Time Quantum = 4
+
+P1 arrives at 0
+P2 arrives at 1
+P3 arrives at 3
+```
+
+P1 runs:
+
+```text
+0 ───────── 4
+    P1
+```
+
+P2 and P3 enter the Ready Queue while P1 is running:
+
+```text
+P2 → P3
+```
+
+At time `4`, P1's quantum expires.
+
+If P1 hasn't finished, it goes to the back:
+
+```text
+P2 → P3 → P1
+```
+
+Therefore P2 runs next.
+
+## Does Round Robin Use Burst Time or Priority?
+
+No.
+
+Round Robin does **not** choose the next process based on:
+
+* shortest Burst Time
+* longest Burst Time
+* priority
+* remaining Burst Time
+
+Instead, it follows the **Ready Queue order**.
+
+Processes normally enter the queue according to their arrival/order of becoming Ready.
+
+## Key Point
+
+> **Round Robin → give each Ready process up to one Time Quantum, then move unfinished processes to the back of the queue.**
+
+---
+
+# Quick Comparison
+
+| Algorithm       | Selection Rule          | Preemptive? | Main Idea                |
+| --------------- | ----------------------- | ----------- | ------------------------ |
+| **FCFS**        | Earliest arrival        | No          | First come, first served |
+| **SJF**         | Smallest Burst Time     | No          | Shortest job first       |
+| **SRTF**        | Smallest Remaining Time | Yes         | Preemptive SJF           |
+| **Priority**    | Highest Priority        | Yes/No      | Priority decides         |
+| **Round Robin** | Ready Queue order       | Yes         | Fixed Time Quantum       |
+
+## One-Line Mental Models
+
+```text
+FCFS     → Who came first?
+SJF      → Who needs the least CPU time?
+SRTF     → Who needs the least CPU time from now?
+Priority → Who has higher priority?
+RR       → Whose turn is it in the queue?
+```
+
+## Important Interview Distinctions
+
+### SJF vs SRTF
+
+```text
+SJF  → Total Burst Time
+SRTF → Remaining Burst Time
+```
+
+SJF is non-preemptive; SRTF is preemptive.
+
+### FCFS vs Round Robin
+
+```text
+FCFS → Once started, process keeps CPU until finish/block.
+RR   → Process gets only one quantum, then may be preempted.
+```
+
+### Priority vs SJF
+
+```text
+SJF      → Burst Time determines preference.
+Priority → Priority value determines preference.
+```
+
+### Round Robin
+
+Round Robin does not care whether a process has:
+
+```text
+BT = 2
+BT = 20
+BT = 100
+```
+
+It gives each Ready process a turn based on the queue and Time Quantum.
+
+---
+
+# Core Summary
+
+```text
+FCFS
+  ↓
+Arrival order
+
+SJF
+  ↓
+Smallest Burst Time
+
+SRTF
+  ↓
+Smallest Remaining Time
+
+Priority
+  ↓
+Highest Priority
+
+Round Robin
+  ↓
+Ready Queue + Time Quantum
+```
+
+These five algorithms cover the main CPU scheduling concepts needed for interview-level OS preparation.
+
