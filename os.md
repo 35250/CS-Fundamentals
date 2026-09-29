@@ -1274,3 +1274,116 @@ Ready Queue + Time Quantum
 
 These five algorithms cover the main CPU scheduling concepts needed for interview-level OS preparation.
 
+# Starvation and Aging
+
+## 1. Starvation
+
+**Starvation** is a situation where a process keeps waiting for CPU time for a very long time because other processes are continuously preferred by the scheduler.
+
+### Example
+
+In Priority Scheduling:
+
+```text
+P1 → High Priority
+P2 → Low Priority
+```
+
+If higher-priority processes keep arriving, the scheduler may repeatedly select them instead of P2:
+
+```text
+P2 waits
+   ↓
+Higher-priority process arrives → selected
+   ↓
+P2 waits
+   ↓
+Another higher-priority process arrives → selected
+   ↓
+P2 waits again
+   ↓
+...
+```
+
+P2 is **Ready** and capable of running, but keeps losing the CPU competition.
+
+This can lead to **starvation**.
+
+### Scheduling Algorithms Where Starvation Can Occur
+
+| Algorithm               | Starvation  | Reason                                                                                     |
+| ----------------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| **FCFS**                | Generally ❌ | Processes are served in arrival order, so later processes cannot repeatedly jump ahead.    |
+| **SJF**                 | ✅ Possible  | Long processes can keep getting postponed by newly arriving shorter processes.             |
+| **SRTF**                | ✅ Possible  | A process with a large remaining time can repeatedly be preempted by shorter processes.    |
+| **Priority Scheduling** | ✅ Possible  | Low-priority processes can repeatedly lose to higher-priority processes.                   |
+| **Round Robin**         | Generally ❌ | Ready processes take turns through the queue, so a waiting process eventually gets a turn. |
+
+> **Key idea:** Starvation is possible when a process can continuously lose scheduling decisions to other preferred processes.
+
+---
+
+# 2. Aging
+
+**Aging** is a technique used to **prevent starvation** by gradually increasing the priority of a process as its waiting time increases.
+
+### Why Aging is Needed
+
+Suppose a low-priority process keeps waiting because higher-priority processes are continuously being selected.
+
+With Aging:
+
+```text
+Process starts with low priority
+        ↓
+Process keeps waiting
+        ↓
+Priority gradually improves
+        ↓
+Process becomes competitive
+        ↓
+Process gets selected for CPU
+```
+
+### Example
+
+Assume a smaller number means higher priority:
+
+```text
+Initially:       P2 → Priority 5
+After waiting:   P2 → Priority 4
+After more wait: P2 → Priority 3
+After more wait: P2 → Priority 2
+After more wait: P2 → Priority 1
+```
+
+Eventually, P2 becomes competitive enough to be selected.
+
+### Important Points
+
+* Aging does **not** mean the scheduler stops using priority.
+* It gradually improves the priority of a waiting process.
+* The exact aging policy depends on the scheduler/OS.
+* A process may still wait for some time; **normal waiting is not the same as starvation**.
+* Aging is designed to prevent a process from being postponed **indefinitely**.
+
+### Interview Definition
+
+> **Aging is a starvation-prevention technique in which the priority of a waiting process is gradually increased as its waiting time grows, giving it a better chance of getting CPU time.**
+
+---
+
+## Starvation vs Aging
+
+```text
+Starvation:
+Process keeps waiting → Other processes keep getting selected
+
+Aging:
+Process keeps waiting → Priority increases → Eventually gets selected
+```
+
+### Mental Models
+
+* **Starvation:** "I keep waiting, but others keep getting the CPU."
+* **Aging:** "The longer I wait, the higher my priority becomes."
