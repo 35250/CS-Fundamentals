@@ -1387,3 +1387,1039 @@ Process keeps waiting → Priority increases → Eventually gets selected
 
 * **Starvation:** "I keep waiting, but others keep getting the CPU."
 * **Aging:** "The longer I wait, the higher my priority becomes."
+
+# OS — Synchronization
+
+## 1. Why Synchronization Is Needed
+
+When multiple threads/processes execute concurrently and access **shared data or resources**, their operations can interfere with each other.
+
+Example:
+
+```text
+balance = 100
+
+Thread A: balance -= 50
+Thread B: balance -= 50
+```
+
+`balance -= 50` conceptually involves:
+
+```text
+Read → Calculate → Write
+```
+
+An unsafe interleaving can be:
+
+```text
+A reads 100
+B reads 100
+B writes 50
+A writes 50
+
+Final balance = 50  ❌
+```
+
+Correct result should be:
+
+```text
+0
+```
+
+Therefore:
+
+```text
+Concurrency + Shared Data
+        ↓
+Possible Race Condition
+        ↓
+Need Synchronization
+```
+
+### Synchronization
+
+Synchronization is the broader concept of **coordinating concurrent threads/processes so that shared resources are accessed safely and operations happen correctly**.
+
+---
+
+# 2. Race Condition
+
+A **race condition** occurs when multiple concurrent threads/processes access shared data/resource and the final result depends on the **timing or ordering/interleaving** of their operations.
+
+### Important
+
+A race condition does **not** require literal simultaneous execution.
+
+It can occur on a **single CPU core** through context switching:
+
+```text
+A reads 100
+↓
+Context switch
+↓
+B reads 100
+↓
+B writes 50
+↓
+Context switch
+↓
+A writes 50
+```
+
+Therefore:
+
+> **Concurrency is enough for a race condition; parallelism is not required.**
+
+### Mental model
+
+```text
+Race Condition
+= Shared data + Concurrent access + Unsafe interleaving
+```
+
+---
+
+# 3. Critical Section
+
+A **critical section** is the part of a program where a thread/process accesses **shared data or a shared resource** that can be affected by concurrent execution.
+
+Example:
+
+```cpp
+balance -= 50;
+```
+
+This is a critical section if multiple threads can access the same `balance`.
+
+### Important distinction
+
+```text
+Critical Section → Sensitive part of the code
+
+Race Condition → Problem caused by unsafe concurrent access
+```
+
+A critical section itself is not the problem. It is the section that needs appropriate protection when concurrent access can cause incorrect behavior.
+
+---
+
+# 4. Mutual Exclusion
+
+**Mutual exclusion** means that **only one thread/process can execute a particular critical section at a time**.
+
+If Thread A is inside:
+
+```text
+Critical Section
+```
+
+Thread B cannot enter that same protected critical section until A leaves.
+
+Example:
+
+```text
+A enters critical section
+B tries to enter → waits
+A leaves
+B enters
+```
+
+### Important
+
+* Mutual exclusion is a **property/requirement**, not a specific synchronization tool.
+* It prevents multiple threads/processes from simultaneously/interleaving their execution in a protected critical section in an unsafe way.
+
+### Hierarchy
+
+```text
+Synchronization
+      ↓
+Mutual Exclusion
+      ↓
+Mutex
+```
+
+This is a useful learning hierarchy, but a mutex is specifically a **mechanism used to enforce mutual exclusion**, not a formal subdivision of synchronization.
+
+---
+
+# 5. Mutex
+
+A **mutex (mutual exclusion lock)** is a synchronization mechanism used to enforce mutual exclusion.
+
+### Mental model
+
+> **Mutex = Lock**
+
+Basic pattern:
+
+```text
+acquire(mutex)
+
+critical section
+
+release(mutex)
+```
+
+### Working
+
+If Thread A acquires the mutex:
+
+```text
+A → acquire(mutex)
+mutex = locked
+A → critical section
+```
+
+If Thread B tries to acquire it:
+
+```text
+B → acquire(mutex)
+    ↓
+    waits because mutex is locked
+```
+
+After A finishes:
+
+```text
+A → release(mutex)
+```
+
+B can then acquire it.
+
+### Important
+
+The mutex protects the **particular critical section**.
+
+Threads can still execute concurrently outside that protected section.
+
+### Mutex vs Mutual Exclusion
+
+```text
+Mutual Exclusion → property/goal
+
+Mutex → mechanism/tool used to provide it
+```
+
+---
+
+# 6. Semaphore
+
+A **semaphore** is a synchronization mechanism with a **counter/value representing available permits or resources**.
+
+Unlike a mutex, a semaphore can represent **multiple available units**.
+
+Example:
+
+```text
+Semaphore S = 3
+```
+
+This means 3 permits/resources are available.
+
+Three threads can acquire them:
+
+```text
+A: wait(S) → 3 → 2
+B: wait(S) → 2 → 1
+C: wait(S) → 1 → 0
+```
+
+A fourth thread:
+
+```text
+D: wait(S)
+```
+
+must wait because:
+
+```text
+S = 0
+```
+
+When a permit becomes available:
+
+```text
+signal(S)
+```
+
+the semaphore value increases and a waiting thread may proceed.
+
+---
+
+# 7. `wait()` and `signal()`
+
+For our learning, use:
+
+### `wait(semaphore)`
+
+Means:
+
+> **"I need one unit/permit of this semaphore."**
+
+If a permit is available:
+
+```text
+S = 3
+
+wait(S)
+
+S = 2
+```
+
+If:
+
+```text
+S = 0
+```
+
+then the calling thread blocks/waits.
+
+### `signal(semaphore)`
+
+Means:
+
+> **"One unit/permit of this semaphore has become available."**
+
+Example:
+
+```text
+S = 0
+
+signal(S)
+
+S = 1
+```
+
+A waiting thread may then be allowed to proceed.
+
+### Who performs `wait()` and `signal()`?
+
+From the programmer's perspective, the **thread/process invokes** these operations.
+
+The underlying synchronization mechanism/library/OS handles the actual blocking and waking.
+
+---
+
+# 8. `acquire()` / `release()` vs `wait()` / `signal()`
+
+Terminology varies between APIs and textbooks.
+
+For this revision:
+
+### Mutex
+
+```text
+acquire(mutex)
+release(mutex)
+```
+
+Think:
+
+```text
+acquire → lock
+release → unlock
+```
+
+### Semaphore
+
+```text
+wait(semaphore)
+signal(semaphore)
+```
+
+Think:
+
+```text
+wait   → obtain one permit / block if none
+signal → make one permit available
+```
+
+Do not treat all four names as four different synchronization concepts.
+
+---
+
+# 9. Binary Semaphore
+
+A **binary semaphore** can have only:
+
+```text
+0 or 1
+```
+
+It therefore represents one available permit.
+
+Example:
+
+```text
+S = 1
+```
+
+Thread A:
+
+```text
+wait(S)
+S: 1 → 0
+```
+
+Thread B:
+
+```text
+wait(S)
+S = 0
+→ B blocks
+```
+
+When A signals:
+
+```text
+signal(S)
+S: 0 → 1
+```
+
+B can proceed.
+
+### Uses
+
+A binary semaphore can be used for:
+
+* Mutual exclusion
+* Simple signaling/coordination
+
+---
+
+# 10. Counting Semaphore
+
+A **counting semaphore** can represent multiple permits:
+
+```text
+0 ... N
+```
+
+Example:
+
+```text
+S = 3
+```
+
+Three threads can acquire permits:
+
+```text
+A → 3 → 2
+B → 2 → 1
+C → 1 → 0
+```
+
+A fourth thread must wait.
+
+### Uses
+
+Useful when multiple instances/slots/resources are available.
+
+Example:
+
+```text
+3 available resources
+→ semaphore = 3
+```
+
+---
+
+# 11. Mutex vs Binary Semaphore
+
+Both can provide mutual exclusion, but their semantics are different.
+
+| Mutex                                            | Binary Semaphore                           |
+| ------------------------------------------------ | ------------------------------------------ |
+| Lock mechanism                                   | Permit mechanism                           |
+| Used primarily for mutual exclusion              | Can provide mutual exclusion and signaling |
+| Has ownership semantics                          | No ownership requirement                   |
+| Thread that locks is normally expected to unlock | A different thread can signal it           |
+| Represents a lock                                | Represents 0/1 permit                      |
+
+### Important example
+
+With a mutex:
+
+```text
+A → acquire
+A → critical section
+A → release
+```
+
+The same thread normally releases the mutex.
+
+With a semaphore:
+
+```text
+A → wait(S)
+A → blocks
+B → signal(S)
+```
+
+This is possible because a semaphore does not have mutex-style ownership.
+
+In resource-counting usage, the same thread often waits and later signals the semaphore, but **ownership is not required**.
+
+---
+
+# 12. Producer-Consumer Problem
+
+The Producer-Consumer problem involves:
+
+* **Producer** → creates items
+* **Consumer** → consumes items
+* **Shared bounded buffer** → stores items temporarily
+* Buffer has limited capacity
+
+Example:
+
+```text
+[ A ][ B ][   ]
+```
+
+There are two availability problems:
+
+### Buffer full
+
+```text
+[ A ][ B ][ C ]
+```
+
+Producer cannot add another item because there is no empty slot.
+
+### Buffer empty
+
+```text
+[   ][   ][   ]
+```
+
+Consumer cannot remove an item because there is nothing available.
+
+### There is also a shared-data problem
+
+Both producer and consumer modify the same shared buffer, so the buffer itself must be protected from unsafe concurrent modification.
+
+---
+
+# 13. The Three Synchronization Mechanisms in Producer-Consumer
+
+A classic solution uses:
+
+```text
+empty → counts available buffer slots
+
+full → counts available items
+
+mutex → protects the shared buffer
+```
+
+### `empty`
+
+Represents:
+
+> **How many empty spaces are currently available in the buffer?**
+
+For capacity 3:
+
+```text
+[   ][   ][   ]
+
+empty = 3
+```
+
+After adding one item:
+
+```text
+[ A ][   ][   ]
+
+empty = 2
+```
+
+### `full`
+
+Represents:
+
+> **How many items are currently available in the buffer?**
+
+Initially:
+
+```text
+[   ][   ][   ]
+
+full = 0
+```
+
+After adding A:
+
+```text
+[ A ][   ][   ]
+
+full = 1
+```
+
+### `mutex`
+
+Represents:
+
+> **Who is currently allowed to modify the shared buffer?**
+
+Only one thread can hold the mutex and modify the protected buffer at a time.
+
+---
+
+# 14. Relationship Between `empty` and `full`
+
+For every item **produced**:
+
+```text
+empty decreases by 1
+full increases by 1
+```
+
+For every item **consumed**:
+
+```text
+full decreases by 1
+empty increases by 1
+```
+
+Example:
+
+```text
+Capacity = 3
+
+Initially:
+empty = 3
+full  = 0
+
+Producer adds A:
+empty = 2
+full  = 1
+
+Producer adds B:
+empty = 1
+full  = 2
+
+Consumer removes A:
+empty = 2
+full  = 1
+```
+
+---
+
+# 15. Producer Operation
+
+Producer needs to:
+
+1. Make sure an empty slot exists.
+2. Safely modify the shared buffer.
+3. Announce that a new item is available.
+
+Therefore:
+
+```text
+wait(empty)
+acquire(mutex)
+
+put item into buffer
+
+release(mutex)
+signal(full)
+```
+
+### Meaning of each step
+
+```text
+wait(empty)
+→ "I need an empty slot."
+
+acquire(mutex)
+→ "Now I need exclusive access to the buffer."
+
+put item
+→ Modify the shared buffer.
+
+release(mutex)
+→ "I'm finished modifying the buffer."
+
+signal(full)
+→ "There is now one more item available."
+```
+
+---
+
+# 16. Consumer Operation
+
+Consumer needs to:
+
+1. Make sure an item exists.
+2. Safely modify the shared buffer.
+3. Announce that a slot has become available.
+
+Therefore:
+
+```text
+wait(full)
+acquire(mutex)
+
+remove item from buffer
+
+release(mutex)
+signal(empty)
+```
+
+### Meaning of each step
+
+```text
+wait(full)
+→ "I need an available item."
+
+acquire(mutex)
+→ "Now I need exclusive access to the buffer."
+
+remove item
+→ Modify the shared buffer.
+
+release(mutex)
+→ "I'm finished modifying the buffer."
+
+signal(empty)
+→ "There is now one more empty slot."
+```
+
+---
+
+# 17. Why `wait(empty/full)` Comes Before `acquire(mutex)`
+
+This ordering is extremely important.
+
+### Wrong producer order
+
+```text
+acquire(mutex)
+wait(empty)
+```
+
+Suppose the buffer is full:
+
+```text
+empty = 0
+```
+
+Producer:
+
+```text
+acquire(mutex)
+↓
+wait(empty)
+↓
+blocks
+```
+
+The producer is now **holding the mutex while waiting**.
+
+A consumer needs the mutex to remove an item:
+
+```text
+Consumer:
+wait(full)
+↓
+acquire(mutex)
+```
+
+But the producer already holds it.
+
+Therefore:
+
+```text
+Producer
+holds mutex
+   ↓
+waits for empty slot
+   ↑
+   │
+Consumer
+needs mutex
+   ↓
+cannot remove item
+   ↓
+cannot create empty slot
+```
+
+The system can deadlock.
+
+### Correct order
+
+```text
+wait(empty)
+↓
+acquire(mutex)
+↓
+modify buffer
+↓
+release(mutex)
+↓
+signal(full)
+```
+
+If the buffer is full, the producer blocks **without holding the mutex**, allowing a consumer to enter the buffer, remove an item, and create an empty slot.
+
+---
+
+### Consumer has the exact opposite problem
+
+Wrong:
+
+```text
+acquire(mutex)
+wait(full)
+```
+
+If the buffer is empty:
+
+```text
+full = 0
+```
+
+the consumer holds the mutex while waiting for an item.
+
+The producer needs that mutex to add an item.
+
+Therefore the producer cannot create the item the consumer is waiting for.
+
+So:
+
+```text
+Consumer
+holds mutex
+   ↓
+waits for item
+   ↑
+   │
+Producer
+needs mutex
+   ↓
+cannot add item
+   ↓
+cannot create full slot
+```
+
+Therefore:
+
+> **Do not hold the mutex while waiting for a condition that another thread needs the mutex to create.**
+
+---
+
+# 18. Why Both Semaphore and Mutex Are Needed
+
+`empty` and `full` do **not** replace the mutex.
+
+They solve different problems.
+
+```text
+empty/full
+    ↓
+Control availability
+
+mutex
+    ↓
+Protect actual shared-buffer modification
+```
+
+### `empty`
+
+Answers:
+
+> "Is there a free slot for the producer?"
+
+### `full`
+
+Answers:
+
+> "Is there an item for the consumer?"
+
+### `mutex`
+
+Answers:
+
+> "Who is allowed to modify the shared buffer right now?"
+
+For example, `empty = 1` does not mean that two threads cannot interfere while accessing the buffer. It only represents the number of available slots.
+
+The mutex protects the actual operations on the shared data structure.
+
+---
+
+# 19. Multiple Producers and Consumers
+
+The same mechanism works when there are multiple producers and consumers:
+
+```text
+Producer P1
+Producer P2
+
+Consumer C1
+Consumer C2
+```
+
+All access the same buffer.
+
+### Multiple producers
+
+If only one empty slot remains:
+
+```text
+empty = 1
+```
+
+The first producer can perform:
+
+```text
+wait(empty)
+```
+
+and consume that available slot:
+
+```text
+empty = 0
+```
+
+Another producer performing:
+
+```text
+wait(empty)
+```
+
+must wait.
+
+When a consumer removes an item:
+
+```text
+signal(empty)
+```
+
+an empty slot becomes available and a waiting producer can continue.
+
+### Multiple consumers
+
+If two items are available:
+
+```text
+full = 2
+```
+
+two consumers can each obtain one permit:
+
+```text
+C1: wait(full) → 2 → 1
+C2: wait(full) → 1 → 0
+```
+
+If another consumer arrives:
+
+```text
+C3: wait(full)
+```
+
+it must wait because there are no items available.
+
+When a producer adds an item:
+
+```text
+signal(full)
+```
+
+a waiting consumer can continue.
+
+---
+
+# 20. Complete Mental Model
+
+```text
+                 SHARED BUFFER
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+       PRODUCER                  CONSUMER
+          │                         │
+      needs SPACE               needs ITEM
+          │                         │
+        empty                     full
+          │                         │
+          └────────────┬────────────┘
+                       │
+                ACTUAL BUFFER
+                       │
+                     mutex
+```
+
+### Producer
+
+```text
+"Do I have space?"
+        ↓
+     empty
+
+"Can I safely modify the buffer?"
+        ↓
+      mutex
+
+"Now an item exists."
+        ↓
+      full
+```
+
+### Consumer
+
+```text
+"Do I have an item?"
+        ↓
+       full
+
+"Can I safely modify the buffer?"
+        ↓
+      mutex
+
+"Now a space exists."
+        ↓
+      empty
+```
+
+## Final takeaway
+
+```text
+Synchronization
+    ↓
+Coordinate concurrent access to shared resources
+    ↓
+Race Condition
+    ↓
+Unsafe concurrent access can make result depend on timing/interleaving
+    ↓
+Critical Section
+    ↓
+Part of code accessing shared data/resource
+    ↓
+Mutual Exclusion
+    ↓
+Only one thread/process enters protected critical section at a time
+    ↓
+Mutex
+    ↓
+Mechanism used to enforce mutual exclusion
+    ↓
+Semaphore
+    ↓
+Counter-based synchronization mechanism
+    ↓
+Binary Semaphore → 0/1 permit
+Counting Semaphore → 0..N permits
+    ↓
+Producer-Consumer
+    ↓
+empty → available spaces
+full  → available items
+mutex → protects shared buffer
+```
+
